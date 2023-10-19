@@ -1,6 +1,6 @@
 NAME		=	ExpensiveEngine
 CC			=	clang
-CFLAGS	=	-m64 -I./includes/
+CFLAGS	=	-m64 -lglfw -I./includes/
 
 all: $(NAME)
 
