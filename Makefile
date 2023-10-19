@@ -1,10 +1,11 @@
-NAME	=	ExpensiveEngine
-CC		=	clang
+NAME		=	ExpensiveEngine
+CC			=	clang
+CFLAGS	=	-m64 -I./includes/
 
 all: $(NAME)
 
 $(NAME):
-	$(CC) main.c -o $(NAME)
+	$(CC) src/main.c src/libs/glad.c -o $(NAME) $(CFLAGS)
 
 fclean:
 	rm -rf $(NAME)

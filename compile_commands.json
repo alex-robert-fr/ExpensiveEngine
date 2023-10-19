@@ -1,0 +1,15 @@
+[
+ {
+  "directory": "/home/x7c00/Documents/ExpensiveEngine",
+  "arguments": [
+   "clang",
+   "src/main.c",
+   "src/libs/glad.c",
+   "-o",
+   "ExpensiveEngine",
+   "-m64",
+   "-I./includes/"
+  ],
+  "file": "src/libs/glad.c"
+ }
+]
