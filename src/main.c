@@ -1,29 +1,24 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
-#include <math.h>
+#include <cglm/cam.h>
+#include <cglm/mat4.h>
+#include <cglm/types.h>
+#include <cglm/util.h>
+#include <cglm/vec4.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stb/stb_image.h>
+#include <cglm/cglm.h>
 #include "shaders.h"
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
-
-const char	*vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
-
-const char	*fragementShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"	FragColor = vec4(0.8f, 0.3f, 0.02f, 1.0f);\n"
-"}\n\0";
+#include "texture.h"
 
 int	main(void) {
+	const unsigned int	width = 800;
+	const unsigned int	height = 800;
+
 	// Initialisation GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -33,19 +28,24 @@ int	main(void) {
 	// Initialisation position vertices
 	GLfloat vertices[] =
 	{ //     COORDINATES     /        COLORS      /   TexCoord  //
-		-0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
-		-0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper left corner
-		 0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
-		 0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower right corner
+		-0.5f, 	0.0f,  0.5f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
+		-0.5f, 	0.0f, -0.5f,     0.0f, 1.0f, 0.0f,	5.0f, 1.0f, // Upper left corner
+		 0.5f,  0.0f, -0.5f,     0.0f, 0.0f, 1.0f,	0.0f, 0.0f, // Upper right corner
+		 0.5f,  0.0f,  0.5f,     1.0f, 1.0f, 1.0f,	5.0f, 0.0f,  // Lower right corner
+		 0.0f,  0.8f,  0.0f,     1.0f, 1.0f, 1.0f,	2.5f, 5.0f  // Lower right corner
 	};
 
 	GLuint indices[] = {
-		0, 2, 1,
-		0, 3, 2,
+		0, 1, 2,
+		0, 2, 3,
+		0, 1, 4,
+		1, 2, 4,
+		2, 3, 4,
+		3, 0, 4,
 	};
 
 	// Create window
-	GLFWwindow	*window = glfwCreateWindow(800, 800, "ExpensiveEngine", NULL, NULL);
+	GLFWwindow	*window = glfwCreateWindow(width, height, "ExpensiveEngine", NULL, NULL);
 	if (!window) {
 		fprintf(stderr, "Failed to create GLFW window.");
 		glfwTerminate();
@@ -55,7 +55,7 @@ int	main(void) {
 	// Ajoute window au context OpenGL
 	glfwMakeContextCurrent(window);
 	gladLoadGL();
-	glViewport(0, 0, 800, 800);
+	glViewport(0, 0, width, height);
 
 	t_shader	*shader_struct = calloc(sizeof(t_shader), 1);
 	shader(shader_struct, "./shaders/default.vert", "./shaders/default.frag");
@@ -78,42 +78,51 @@ int	main(void) {
 	unbind_vbo(VBO1);
 	unbind_ebo(EBO1);
 
+
 	GLuint	uniID = glGetUniformLocation(shader_struct->ID, "scale");
+	
+	t_texture	*nyanCat = calloc(sizeof(t_texture), 1);
+	texture(nyanCat, "./textures/nyan.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
+	tex_unit(shader_struct, "tex0", 0);
 
-	int widthImg, heightImg, numColCh;
-	stbi_set_flip_vertically_on_load(1);
-	unsigned char	*bytes = stbi_load("./textures/nyan.png", &widthImg, &heightImg, &numColCh, 0);
+	float		rotation = 0.0f;
+	double	prevTime = glfwGetTime();
 
-	GLuint	texture;
-	glGenTextures(1, &texture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, widthImg, heightImg, 0, GL_RGB, GL_UNSIGNED_BYTE, bytes);
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	stbi_image_free(bytes);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	GLuint tex0Uni = glGetUniformLocation(shader_struct->ID, "tex0");
-	activate_shader(shader_struct);
-	glUniform1i(tex0Uni, 0);
+	glEnable(GL_DEPTH_TEST);
 
 	// Boucle de rendu
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glUseProgram(shader_struct->ID);
-		glUniform1f(uniID, 0.5f);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		activate_shader(shader_struct);
+
+		double	crntTime = glfwGetTime();
+		if (crntTime - prevTime >= 1 / 60) {
+			rotation += 0.5f;
+			prevTime = crntTime;
+		}
+
+		mat4	model = GLM_MAT4_IDENTITY_INIT;
+		mat4	view = GLM_MAT4_IDENTITY_INIT;
+		mat4	proj = GLM_MAT4_IDENTITY_INIT;
+
+		vec3	vec_rotation = {0.0f, 1.0f, 0.0f};
+		glm_rotate(model, glm_rad(rotation), vec_rotation);
+		vec3	vec_translate = {0.0f, -0.5f, -2.0f};
+		glm_translate(view, vec_translate);
+		glm_perspective(glm_rad(45.0f), (float)width/(float)height, 0.1f, 100.0f, proj);
+
+		int	modelLoc = glGetUniformLocation(shader_struct->ID, "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, (const GLfloat*)model);
+		int	viewLoc = glGetUniformLocation(shader_struct->ID, "view");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, (const GLfloat*)view);
+		int	projLoc = glGetUniformLocation(shader_struct->ID, "proj");
+		glUniformMatrix4fv(projLoc, 1, GL_FALSE, (const GLfloat*)proj);
+
+		glUniform1f(uniID, 0.0f); // size
+		bind_texture(nyanCat);
 		bind_vao(VAO1);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int), GL_UNSIGNED_INT, 0);
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
@@ -122,8 +131,8 @@ int	main(void) {
 	delete_vao(VAO1);
 	delete_vbo(VBO1);
 	delete_ebo(EBO1);
-	glDeleteTextures(1, &texture);
-	glDeleteProgram(shader_struct->ID);
+	delete_texture(nyanCat);
+	delete_shader(shader_struct);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
