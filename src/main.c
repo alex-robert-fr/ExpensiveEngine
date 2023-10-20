@@ -1,11 +1,12 @@
-#include "VAO.h"
-#include "VBO.h"
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "shaders.h"
+#include "VAO.h"
+#include "VBO.h"
+#include "EBO.h"
 
 const char	*vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
@@ -62,27 +63,19 @@ int	main(void) {
 
 	t_vao	*VAO1 = calloc(sizeof(t_vao), 1);
 	vao(VAO1);
+	bind_vao(VAO1);
 
 	t_vbo	*VBO1 = calloc(sizeof(t_vbo), 1);
 	vbo(VBO1, vertices, sizeof(vertices));
 
-	GLuint EBO;
+	t_ebo	*EBO1 = calloc(sizeof(t_ebo), 1);
+	ebo(EBO1, indices, sizeof(indices));
 
-	glGenBuffers(1, &EBO);
-
-	bind_vao(VAO1);
-	bind_vbo(VBO1);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+	link_vbo(VAO1, VBO1, 0);
 
 	unbind_vao(VAO1);
 	unbind_vbo(VBO1);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	unbind_ebo(EBO1);
 
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -102,7 +95,7 @@ int	main(void) {
 
 	delete_vao(VAO1);
 	delete_vbo(VBO1);
-	glDeleteBuffers(1, &EBO);
+	delete_ebo(EBO1);
 	glDeleteProgram(shader_struct->ID);
 
 	glfwDestroyWindow(window);

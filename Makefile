@@ -2,7 +2,8 @@ NAME		=	ExpensiveEngine
 CC			=	clang
 CFLAGS	=	-m64 -lglfw -lm -I./includes/
 SOURCES_BUFFERS		=	./src/buffers/VAO.c	\
-										./src/buffers/VBO.c
+										./src/buffers/VBO.c	\
+										./src/buffers/EBO.c
 SOURCES_FUNCTIONS	=	./src/functions/get_file_contents.c
 SOURCES_SHADERS		=	./src/shaders/shader.c
 
