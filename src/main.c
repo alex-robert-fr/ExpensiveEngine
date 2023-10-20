@@ -1,3 +1,4 @@
+#include "VAO.h"
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include <math.h>
@@ -58,14 +59,15 @@ int	main(void) {
 	t_shader	*shader_struct = calloc(sizeof(t_shader), 1);
 	shader(shader_struct, "./shaders/default.vert", "./shaders/default.frag");
 
-	GLuint	VAO, VBO, EBO;
+	t_vao	*VAO1 = calloc(sizeof(t_vao), 1);
 
-	glGenVertexArrays(1, &VAO);
+	GLuint VBO, EBO;
+
+	vao(VAO1);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	glBindVertexArray(VAO);
-
+	bind_vao(VAO1);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
@@ -75,8 +77,8 @@ int	main(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
+	unbind_vao(VAO1);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -88,14 +90,14 @@ int	main(void) {
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glUseProgram(shader_struct->ID);
-		glBindVertexArray(VAO);
+		bind_vao(VAO1);
 		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
 	}
 
-	glDeleteVertexArrays(1, &VAO);
+	delete_vao(VAO1);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
 	glDeleteProgram(shader_struct->ID);
