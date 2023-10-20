@@ -1,6 +1,7 @@
 NAME		=	ExpensiveEngine
 CC			=	clang
 CFLAGS	=	-m64 -lglfw -lm -I./includes/
+LIB_STB						=	./src/libs/stb.c
 SOURCES_BUFFERS		=	./src/buffers/VAO.c	\
 										./src/buffers/VBO.c	\
 										./src/buffers/EBO.c
@@ -10,7 +11,7 @@ SOURCES_SHADERS		=	./src/shaders/shader.c
 all: $(NAME)
 
 $(NAME):
-	$(CC) src/main.c src/libs/glad.c -o $(NAME) $(SOURCES_SHADERS) $(SOURCES_FUNCTIONS) $(SOURCES_BUFFERS) $(CFLAGS)
+	$(CC) src/main.c src/libs/glad.c -o $(NAME) $(SOURCES_SHADERS) $(SOURCES_FUNCTIONS) $(SOURCES_BUFFERS) $(LIB_STB) $(CFLAGS)
 
 fclean:
 	rm -rf $(NAME)

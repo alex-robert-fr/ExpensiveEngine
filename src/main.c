@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stb/stb_image.h>
 #include "shaders.h"
 #include "VAO.h"
 #include "VBO.h"
@@ -30,20 +31,17 @@ int	main(void) {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Initialisation position vertices
-	GLfloat vertices[] = {
-		//				COORDINATES						/						COLORS
-  	-0.5f, -0.5f * sqrtf(3) / 3,			0.0f,		1.0f, 0.0f,		0.0f,
-     0.5f, -0.5f * sqrtf(3) / 3,			0.0f,		0.0f, 1.0f,		0.0f,
-     0.0f,  0.5f * sqrtf(3) * 2 / 3,	0.0f,		0.0f, 0.0f,		1.0f,
-		-0.25f, 0.5f * sqrtf(3) / 6,			0.0f,		0.9f, 0.45f,	0.17f,
-		 0.25f, 0.5f * sqrtf(3) / 6,			0.0f,		0.9f, 0.45f,	0.17f,
-		 0.0f, -0.5f * sqrtf(3) / 3,			0.0f,		0.8f, 0.3f,		0.02f,
+	GLfloat vertices[] =
+	{ //     COORDINATES     /        COLORS      /   TexCoord  //
+		-0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
+		-0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper left corner
+		 0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
+		 0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower right corner
 	};
 
 	GLuint indices[] = {
-		0, 3, 5,
-		3, 2, 4,
-		5, 4, 1
+		0, 2, 1,
+		0, 3, 2,
 	};
 
 	// Create window
@@ -72,8 +70,9 @@ int	main(void) {
 	t_ebo	*EBO1 = calloc(sizeof(t_ebo), 1);
 	ebo(EBO1, indices, sizeof(indices));
 
-	link_attrib(VAO1, VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
-	link_attrib(VAO1, VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	link_attrib(VAO1, VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
+	link_attrib(VAO1, VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	link_attrib(VAO1, VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
 	unbind_vao(VAO1);
 	unbind_vbo(VBO1);
@@ -81,14 +80,40 @@ int	main(void) {
 
 	GLuint	uniID = glGetUniformLocation(shader_struct->ID, "scale");
 
+	int widthImg, heightImg, numColCh;
+	stbi_set_flip_vertically_on_load(1);
+	unsigned char	*bytes = stbi_load("./textures/nyan.png", &widthImg, &heightImg, &numColCh, 0);
+
+	GLuint	texture;
+	glGenTextures(1, &texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, widthImg, heightImg, 0, GL_RGB, GL_UNSIGNED_BYTE, bytes);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(bytes);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	GLuint tex0Uni = glGetUniformLocation(shader_struct->ID, "tex0");
+	activate_shader(shader_struct);
+	glUniform1i(tex0Uni, 0);
+
 	// Boucle de rendu
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glUseProgram(shader_struct->ID);
 		glUniform1f(uniID, 0.5f);
+		glBindTexture(GL_TEXTURE_2D, texture);
 		bind_vao(VAO1);
-		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
@@ -97,6 +122,7 @@ int	main(void) {
 	delete_vao(VAO1);
 	delete_vbo(VBO1);
 	delete_ebo(EBO1);
+	glDeleteTextures(1, &texture);
 	glDeleteProgram(shader_struct->ID);
 
 	glfwDestroyWindow(window);
