@@ -31,12 +31,13 @@ int	main(void) {
 
 	// Initialisation position vertices
 	GLfloat vertices[] = {
-   	-0.5f, -0.5f * sqrtf(3) / 3, 0.0f,
-     0.5f, -0.5f * sqrtf(3) / 3, 0.0f,
-     0.0f,  0.5f * sqrtf(3) * 2 / 3, 0.0f,
-		 -0.5f / 2, 0.5f * sqrtf(3) / 6, 0.0f,
-		 0.5 / 2, 0.5f * sqrtf(3) / 6, 0.0f,
-		 0.0f, -0.5f * sqrtf(3) / 3, 0.0f
+		//				COORDINATES						/						COLORS
+  	-0.5f, -0.5f * sqrtf(3) / 3,			0.0f,		1.0f, 0.0f,		0.0f,
+     0.5f, -0.5f * sqrtf(3) / 3,			0.0f,		0.0f, 1.0f,		0.0f,
+     0.0f,  0.5f * sqrtf(3) * 2 / 3,	0.0f,		0.0f, 0.0f,		1.0f,
+		-0.25f, 0.5f * sqrtf(3) / 6,			0.0f,		0.9f, 0.45f,	0.17f,
+		 0.25f, 0.5f * sqrtf(3) / 6,			0.0f,		0.9f, 0.45f,	0.17f,
+		 0.0f, -0.5f * sqrtf(3) / 3,			0.0f,		0.8f, 0.3f,		0.02f,
 	};
 
 	GLuint indices[] = {
@@ -46,7 +47,7 @@ int	main(void) {
 	};
 
 	// Create window
-	GLFWwindow	*window = glfwCreateWindow(800, 600, "ExpensiveEngine", NULL, NULL);
+	GLFWwindow	*window = glfwCreateWindow(800, 800, "ExpensiveEngine", NULL, NULL);
 	if (!window) {
 		fprintf(stderr, "Failed to create GLFW window.");
 		glfwTerminate();
@@ -56,7 +57,7 @@ int	main(void) {
 	// Ajoute window au context OpenGL
 	glfwMakeContextCurrent(window);
 	gladLoadGL();
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, 800, 800);
 
 	t_shader	*shader_struct = calloc(sizeof(t_shader), 1);
 	shader(shader_struct, "./shaders/default.vert", "./shaders/default.frag");
@@ -71,21 +72,21 @@ int	main(void) {
 	t_ebo	*EBO1 = calloc(sizeof(t_ebo), 1);
 	ebo(EBO1, indices, sizeof(indices));
 
-	link_vbo(VAO1, VBO1, 0);
+	link_attrib(VAO1, VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
+	link_attrib(VAO1, VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 
 	unbind_vao(VAO1);
 	unbind_vbo(VBO1);
 	unbind_ebo(EBO1);
 
-	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glfwSwapBuffers(window);
+	GLuint	uniID = glGetUniformLocation(shader_struct->ID, "scale");
 
 	// Boucle de rendu
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glUseProgram(shader_struct->ID);
+		glUniform1f(uniID, 0.5f);
 		bind_vao(VAO1);
 		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
 		glfwSwapBuffers(window);
