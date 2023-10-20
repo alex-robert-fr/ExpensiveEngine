@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include "shaders.h"
 
 const char	*vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
@@ -53,24 +55,8 @@ int	main(void) {
 	gladLoadGL();
 	glViewport(0, 0, 800, 600);
 
-	// Cree le vertex shader
-	GLuint	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	// Cree le fragement shader
-	GLuint	fragementShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragementShader, 1, &fragementShaderSource, NULL);
-	glCompileShader(fragementShader);
-
-	// "Assemble" les differents shader ensemble
-	GLuint	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragementShader);
-	glLinkProgram(shaderProgram);
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragementShader);
+	t_shader	*shader_struct = calloc(sizeof(t_shader), 1);
+	shader(shader_struct, "./shaders/default.vert", "./shaders/default.frag");
 
 	GLuint	VAO, VBO, EBO;
 
@@ -101,7 +87,7 @@ int	main(void) {
 	while (!glfwWindowShouldClose(window)) {
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glUseProgram(shaderProgram);
+		glUseProgram(shader_struct->ID);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
 		glfwSwapBuffers(window);
@@ -112,7 +98,7 @@ int	main(void) {
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
-	glDeleteProgram(shaderProgram);
+	glDeleteProgram(shader_struct->ID);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
