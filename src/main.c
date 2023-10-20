@@ -1,4 +1,5 @@
 #include "VAO.h"
+#include "VBO.h"
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include <math.h>
@@ -60,15 +61,17 @@ int	main(void) {
 	shader(shader_struct, "./shaders/default.vert", "./shaders/default.frag");
 
 	t_vao	*VAO1 = calloc(sizeof(t_vao), 1);
-
-	GLuint VBO, EBO;
-
 	vao(VAO1);
-	glGenBuffers(1, &VBO);
+
+	t_vbo	*VBO1 = calloc(sizeof(t_vbo), 1);
+	vbo(VBO1, vertices, sizeof(vertices));
+
+	GLuint EBO;
+
 	glGenBuffers(1, &EBO);
 
 	bind_vao(VAO1);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	bind_vbo(VBO1);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -78,7 +81,7 @@ int	main(void) {
 	glEnableVertexAttribArray(0);
 
 	unbind_vao(VAO1);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	unbind_vbo(VBO1);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -98,7 +101,7 @@ int	main(void) {
 	}
 
 	delete_vao(VAO1);
-	glDeleteBuffers(1, &VBO);
+	delete_vbo(VBO1);
 	glDeleteBuffers(1, &EBO);
 	glDeleteProgram(shader_struct->ID);
 
