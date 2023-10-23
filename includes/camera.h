@@ -12,6 +12,7 @@ typedef struct {
 	int		height;
 	float	speed;
 	float	sensitivity;
+	int		first_click;
 } t_camera;
 
 void	camera(t_camera *camera, int width, int height, vec3 position);

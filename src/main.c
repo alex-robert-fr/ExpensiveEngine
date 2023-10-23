@@ -91,6 +91,7 @@ int	main(void) {
 		.up = {0.0f, 1.0f, 0.0f},
 		.speed = 0.01f,
 		.sensitivity = 100.0f,
+		.first_click = 1,
 	};
 	vec3	camera_position = {0.0f, 0.0f, 2.0f};
 

@@ -5,7 +5,9 @@
 #include <cglm/types.h>
 #include <cglm/util.h>
 #include <cglm/vec3.h>
+#include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void	camera(t_camera *camera, int width, int height, vec3 position) {
 	camera->width = width;
@@ -75,5 +77,44 @@ void	inputs_camera(t_camera *camera, GLFWwindow *window) {
 		camera->speed = 0.1f;
 	} else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE) {
 		camera->speed = 0.01f;
+	}
+
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+		if (camera->first_click) {
+			glfwSetCursorPos(window, ((float)camera->width / 2), ((float)camera->height / 2));
+			camera->first_click = 0;
+		}
+
+		double	mouseX;
+		double	mouseY;
+		glfwGetCursorPos(window, &mouseX, &mouseY);
+
+		float	rotx = camera->sensitivity * (mouseY - ((float)camera->height / 2)) / camera->height;
+		float	roty = camera->sensitivity * (mouseX - ((float)camera->width / 2)) / camera->width;
+
+		vec3	new_orientation;
+		vec3	result_cross;
+		vec3	result_norm;
+		vec3	result_neg;
+
+		glm_vec3_copy(camera->orientation, new_orientation);
+		glm_vec3_cross(camera->orientation, camera->up, result_cross);
+		glm_vec3_normalize_to(result_cross, result_norm);
+		glm_vec3_rotate(new_orientation, glm_rad(-rotx), result_norm);
+
+//		glm_vec3_negate_to(camera->up, result_neg);
+	//	if (!((glm_vec3_angle(new_orientation, camera->up) <= glm_rad(5.0f)) || (glm_vec3_angle(new_orientation, result_neg) <= glm_rad(5.0f)))) {
+		if (fabsf(glm_vec3_angle(new_orientation, camera->up) - glm_rad(90.0f)) <= glm_rad(85.0f)) {
+			glm_vec3_copy(new_orientation, camera->orientation);
+		}
+
+		glm_vec3_rotate(camera->orientation, glm_rad(-roty), camera->up);
+		glfwSetCursorPos(window, ((float)camera->width / 2), ((float)camera->height / 2));
+
+	} else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		camera->first_click = 1;
 	}
 }
