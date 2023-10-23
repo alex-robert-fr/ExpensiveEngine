@@ -16,4 +16,4 @@ typedef struct {
 
 void	camera(t_camera *camera, int width, int height, vec3 position);
 void	matrix_camera(t_camera *camera, float FOVdeg, float nearPlane, float farPlane, t_shader *shader, const char *uniform);
-void	inputs_camera(GLFWwindow *window);
+void	inputs_camera(t_camera *camera, GLFWwindow *window);

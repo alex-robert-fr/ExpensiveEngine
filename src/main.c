@@ -89,7 +89,7 @@ int	main(void) {
 	t_camera camera_struct = {
 		.orientation = {0.0f, 0.0f, -1.0f},
 		.up = {0.0f, 1.0f, 0.0f},
-		.speed = 0.1f,
+		.speed = 0.01f,
 		.sensitivity = 100.0f,
 	};
 	vec3	camera_position = {0.0f, 0.0f, 2.0f};
@@ -102,6 +102,7 @@ int	main(void) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		activate_shader(shader_struct);
 
+		inputs_camera(&camera_struct, window);
 		matrix_camera(&camera_struct, 45.0f, 0.1f, 100.0f, shader_struct, "camMatrix");
 
 		bind_texture(nyanCat);
