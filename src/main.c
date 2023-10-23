@@ -16,6 +16,11 @@
 #include "texture.h"
 #include "camera.h"
 
+void	set_transform(t_shader *shader, const char *uniform, mat4 transform) {
+	GLuint transformLoc = glGetUniformLocation(shader->ID, uniform);
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, (const GLfloat*) transform);
+}
+
 int	main(void) {
 	const unsigned int	width = 800;
 	const unsigned int	height = 800;
@@ -118,7 +123,18 @@ int	main(void) {
 
 		bind_texture(nyanCat);
 		bind_vao(VAO1);
+		mat4 transform1;
+		glm_mat4_identity(transform1);
+		glm_translate(transform1, (vec3){0.0f, 0.0f, 0.0f});
+		set_transform(shader_struct, "transform", transform1);
 		glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int), GL_UNSIGNED_INT, 0);
+
+		mat4 transform2;
+		glm_mat4_identity(transform2);
+		glm_translate(transform2, (vec3){1.5f, 0.0f, 0.0f});
+		set_transform(shader_struct, "transform", transform2);
+		glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int), GL_UNSIGNED_INT, 0);
+
 		glfwSwapBuffers(window);
 
 		glfwPollEvents();
