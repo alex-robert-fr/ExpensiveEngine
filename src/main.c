@@ -14,6 +14,7 @@
 #include "VBO.h"
 #include "EBO.h"
 #include "texture.h"
+#include "camera.h"
 
 int	main(void) {
 	const unsigned int	width = 800;
@@ -29,7 +30,7 @@ int	main(void) {
 	GLfloat vertices[] =
 	{ //     COORDINATES     /        COLORS      /   TexCoord  //
 		-0.5f, 	0.0f,  0.5f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
-		-0.5f, 	0.0f, -0.5f,     0.0f, 1.0f, 0.0f,	5.0f, 1.0f, // Upper left corner
+		-0.5f, 	0.0f, -0.5f,     0.0f, 1.0f, 0.0f,	5.0f, 0.0f, // Upper left corner
 		 0.5f,  0.0f, -0.5f,     0.0f, 0.0f, 1.0f,	0.0f, 0.0f, // Upper right corner
 		 0.5f,  0.0f,  0.5f,     1.0f, 1.0f, 1.0f,	5.0f, 0.0f,  // Lower right corner
 		 0.0f,  0.8f,  0.0f,     1.0f, 1.0f, 1.0f,	2.5f, 5.0f  // Lower right corner
@@ -79,16 +80,21 @@ int	main(void) {
 	unbind_ebo(EBO1);
 
 
-	GLuint	uniID = glGetUniformLocation(shader_struct->ID, "scale");
-	
 	t_texture	*nyanCat = calloc(sizeof(t_texture), 1);
 	texture(nyanCat, "./textures/nyan.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
 	tex_unit(shader_struct, "tex0", 0);
 
-	float		rotation = 0.0f;
-	double	prevTime = glfwGetTime();
-
 	glEnable(GL_DEPTH_TEST);
+
+	t_camera camera_struct = {
+		.orientation = {0.0f, 0.0f, -1.0f},
+		.up = {0.0f, 1.0f, 0.0f},
+		.speed = 0.1f,
+		.sensitivity = 100.0f,
+	};
+	vec3	camera_position = {0.0f, 0.0f, 2.0f};
+
+	camera(&camera_struct, width, height, camera_position);
 
 	// Boucle de rendu
 	while (!glfwWindowShouldClose(window)) {
@@ -96,30 +102,8 @@ int	main(void) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		activate_shader(shader_struct);
 
-		double	crntTime = glfwGetTime();
-		if (crntTime - prevTime >= 1 / 60) {
-			rotation += 0.5f;
-			prevTime = crntTime;
-		}
+		matrix_camera(&camera_struct, 45.0f, 0.1f, 100.0f, shader_struct, "camMatrix");
 
-		mat4	model = GLM_MAT4_IDENTITY_INIT;
-		mat4	view = GLM_MAT4_IDENTITY_INIT;
-		mat4	proj = GLM_MAT4_IDENTITY_INIT;
-
-		vec3	vec_rotation = {0.0f, 1.0f, 0.0f};
-		glm_rotate(model, glm_rad(rotation), vec_rotation);
-		vec3	vec_translate = {0.0f, -0.5f, -2.0f};
-		glm_translate(view, vec_translate);
-		glm_perspective(glm_rad(45.0f), (float)width/(float)height, 0.1f, 100.0f, proj);
-
-		int	modelLoc = glGetUniformLocation(shader_struct->ID, "model");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, (const GLfloat*)model);
-		int	viewLoc = glGetUniformLocation(shader_struct->ID, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, (const GLfloat*)view);
-		int	projLoc = glGetUniformLocation(shader_struct->ID, "proj");
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, (const GLfloat*)proj);
-
-		glUniform1f(uniID, 0.0f); // size
 		bind_texture(nyanCat);
 		bind_vao(VAO1);
 		glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int), GL_UNSIGNED_INT, 0);
