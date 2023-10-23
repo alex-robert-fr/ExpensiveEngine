@@ -29,20 +29,29 @@ int	main(void) {
 	// Initialisation position vertices
 	GLfloat vertices[] =
 	{ //     COORDINATES     /        COLORS      /   TexCoord  //
-		-0.5f, 	0.0f,  0.5f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
-		-0.5f, 	0.0f, -0.5f,     0.0f, 1.0f, 0.0f,	5.0f, 0.0f, // Upper left corner
-		 0.5f,  0.0f, -0.5f,     0.0f, 0.0f, 1.0f,	0.0f, 0.0f, // Upper right corner
-		 0.5f,  0.0f,  0.5f,     1.0f, 1.0f, 1.0f,	5.0f, 0.0f,  // Lower right corner
-		 0.0f,  0.8f,  0.0f,     1.0f, 1.0f, 1.0f,	2.5f, 5.0f  // Lower right corner
+		-0.5f,  0.5f,  0.0f,     1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		 0.5f, 	0.5f,  0.0f,     0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+		 0.5f, -0.5f,  0.0f,     0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f,  0.0f,     1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+		-0.5f,  0.5f, -1.0f,     1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		 0.5f, 	0.5f, -1.0f,     0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+		 0.5f, -0.5f, -1.0f,     0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f, -1.0f,     1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
 	};
 
 	GLuint indices[] = {
-		0, 1, 2,
-		0, 2, 3,
+		0, 1, 3,
+		1, 2, 3,
+		1, 6, 2,
+		1, 6, 5,
+		0, 7, 3,
+		0, 7, 4,
+		4, 7, 6,
+		4, 6, 5,
+		7, 3, 2,
+		7, 2, 6,
 		0, 1, 4,
-		1, 2, 4,
-		2, 3, 4,
-		3, 0, 4,
+		1, 4, 5
 	};
 
 	// Create window
@@ -71,6 +80,7 @@ int	main(void) {
 	t_ebo	*EBO1 = calloc(sizeof(t_ebo), 1);
 	ebo(EBO1, indices, sizeof(indices));
 
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	link_attrib(VAO1, VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
 	link_attrib(VAO1, VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	link_attrib(VAO1, VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
@@ -78,7 +88,7 @@ int	main(void) {
 	unbind_vao(VAO1);
 	unbind_vbo(VBO1);
 	unbind_ebo(EBO1);
-
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	t_texture	*nyanCat = calloc(sizeof(t_texture), 1);
 	texture(nyanCat, "./textures/nyan.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
